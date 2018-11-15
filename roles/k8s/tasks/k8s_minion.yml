@@ -1,0 +1,12 @@
+
+- name: Reset the minion node
+  shell: >
+      kubeadm reset --force
+  ignore_errors: yes
+
+- name: Join master node
+  shell: |
+    systemctl daemon-reload
+    service kubelet restart
+    {{ hostvars.get(groups['master'][0]).get('kubeadm_join_command') }} --ignore-preflight-errors cri
+

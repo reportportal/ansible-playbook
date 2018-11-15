@@ -1,0 +1,4 @@
+- import_tasks: k8s_master.yml
+  when: inventory_hostname in groups['master']
+- import_tasks: k8s_minion.yml
+  when: inventory_hostname not in groups['master']

@@ -1,0 +1,80 @@
+---
+- name: disable SELinux
+  command: setenforce 0
+
+- name: disable SELinux on reboot
+  selinux:
+    state: disable
+
+- name: Remove current swaps from fstab
+  lineinfile:
+    dest: /etc/fstab
+    regexp: '(?i)^([^#][\S]+\s+(none|swap)\s+swap.*)'
+    line: '# \1'
+    backrefs: yes
+    state: present
+
+- name: Disable swap
+  command: swapoff -a
+
+- name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptable
+    value: 1
+    state: present
+
+- name: add Kubernetes' YUM repository
+    yum_repository:
+      name: Kubernetes
+      description: Kubernetes YUM repository
+      baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      gpgcheck: yes
+
+#- name: Install docker
+#  yum:
+#    name:
+#      - docker
+
+#- name: Initialize docker
+#  shell: >
+#     systemctl enable docker && systemctl start docker
+
+- name: Install Kubelet
+  yum:
+    name:
+      - kubelet
+
+- name: Initialize kubelet
+  shell: >
+     systemctl enable kubelet && systemctl start kubelet
+
+- name: Install Kubeadm
+  yum:
+    name:
+      - kubeadm-{{ kube_version }}.x86_64
+
+- name: Install Kubectl
+  yum:
+    name:
+      - kubectl-{{ kube_version }}.x86_64
+
+- name: Install Kubernetes-cni
+  yum:
+    name:
+      - kubernetes-cni
+
+- debug:
+     msg: "Downloading cri-tools from: http://github.com/kubernetes-incubator/cri-tools/releases/download/{{ crictl_version }}/crictl-{{ crictl_version }}-linux-amd64.tar.gz"
+
+- name: Install crictl
+  shell: |
+     wget http://github.com/kubernetes-incubator/cri-tools/releases/download/{{ crictl_version }}/crictl-{{ crictl_version }}-linux-amd64.tar.gz
+     tar -xvf crictl-{{ crictl_version }}-linux-amd64.tar.gz --directory /usr/bin/
+     rm -rf crictl-{{ crictl_version }}-linux-amd64.tar.gz
+
+- name: Set Kubernetes Config env variable
+  template:
+    src: kubernetes-env.sh.j2
+    dest: /etc/profile.d/kubernetes-env.sh
+    mode: 0644

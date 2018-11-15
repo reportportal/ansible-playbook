@@ -1,0 +1,6 @@
+- name: setup kubernetes
+  hosts: all
+  become: yes
+  roles:
+    - role: common
+    - role: k8s
