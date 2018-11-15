@@ -2,10 +2,6 @@
 - name: disable SELinux
   command: setenforce 0
 
-- name: disable SELinux on reboot
-  selinux:
-    state: disable
-
 - name: Remove current swaps from fstab
   lineinfile:
     dest: /etc/fstab
@@ -18,27 +14,39 @@
   command: swapoff -a
 
 - name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+  become: yes
   sysctl:
     name: net.bridge.bridge-nf-call-iptable
     value: 1
     state: present
 
 - name: add Kubernetes' YUM repository
-    yum_repository:
-      name: Kubernetes
-      description: Kubernetes YUM repository
-      baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-      gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-      gpgcheck: yes
+  yum_repository:
+    name: Kubernetes
+    description: Kubernetes YUM repository
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    gpgcheck: yes
 
-#- name: Install docker
-#  yum:
-#    name:
-#      - docker
+- name: Install docker
+  yum:
+    name:
+      - docker
 
-#- name: Initialize docker
-#  shell: >
-#     systemctl enable docker && systemctl start docker
+- name: reload service docker
+  systemd:
+    name: docker
+    state: reloaded
+
+- name: enable service docker
+  systemd:
+    name: docker
+    enabled: yes
+    masked: no
+
+- name: Initialize docker
+  shell: >
+     systemctl enable docker && systemctl start docker
 
 - name: Install Kubelet
   yum:
