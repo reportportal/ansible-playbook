@@ -10,7 +10,7 @@ host_key_checking: False
 install_temp_dir: /tmp/ansible-install
 install_dir: /opt
 
-kube_version: 1.11.0-0
+kube_version: 1.12.2
 
 crictl_version: v1.0.0-beta.1
 

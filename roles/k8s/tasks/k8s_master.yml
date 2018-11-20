@@ -7,7 +7,13 @@
   shell: |
       systemctl daemon-reload
       service kubelet restart
-      kubeadm init --apiserver-advertise-address 0.0.0.0 --pod-network-cidr={{ kube_service_addresses }} --ignore-preflight-errors cri
+      kubeadm init --apiserver-advertise-address 10.10.0.11 --pod-network-cidr={{ kube_service_addresses }} --ignore-preflight-errors cri
+
+- name: test
+  shell: |
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 - name: Restart kubelet
   shell: |

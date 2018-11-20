@@ -15,10 +15,13 @@
 
 - name: ensure net.bridge.bridge-nf-call-iptables is set to 1
   become: yes
+  ignore_errors : yes
   sysctl:
     name: net.bridge.bridge-nf-call-iptable
+    sysctl_set: yes
     value: 1
     state: present
+    reload: yes
 
 - name: add Kubernetes' YUM repository
   yum_repository:
@@ -60,12 +63,12 @@
 - name: Install Kubeadm
   yum:
     name:
-      - kubeadm-{{ kube_version }}.x86_64
+      - kubeadm
 
 - name: Install Kubectl
   yum:
     name:
-      - kubectl-{{ kube_version }}.x86_64
+      - kubectl
 
 - name: Install Kubernetes-cni
   yum:
